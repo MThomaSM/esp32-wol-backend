@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String      @id @default(uuid())
+  email            String      @unique
+  password         String
+  role             Role        @default(USER)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  passwordChangeAt DateTime    @default(now())
+  Device           Device[]
+  Computer         Computer[]
+  StartList        StartList[]
+}
+
+model Device {
+  id             String      @id @default(uuid())
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  uuid           String      @unique
+  name           String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  lastActiveTime DateTime?   @db.Timestamp(0)
+  Computer       Computer[]
+  StartList      StartList[]
+}
+
+model Computer {
+  id         String      @id @default(uuid())
+  device     Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  deviceId   String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  name       String
+  macAddress String      @unique
+  StartList  StartList[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model StartList {
+  id           String    @id @default(uuid())
+  device       Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  deviceId     String
+  computer     Computer  @relation(fields: [computerId], references: [id], onDelete: Cascade)
+  computerId   String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  startTime    DateTime  @default(now())
+  executedTime DateTime? @db.Timestamp(0)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
